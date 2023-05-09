@@ -17,23 +17,12 @@
   }: parts.lib.mkFlake { inherit inputs; } {
     systems = ["x86_64-linux" "aarch64-linux" "aarch64-darwin" "x86_64-darwin"];
 
-    flake = {
-      overlays.default = nixpkgs.lib.composeManyExtensions [
-        (final: prev: {
-          hoon-language-server = final.callPackage ./. { };
-        })
-      ];
-    };
-
     perSystem = { pkgs, system, ... }: {
-      imports = [
-        { config._module.args.pkgs = import nixpkgs { inherit system; overlays = [self.overlays.default]; }; }
-      ];
-
-      packages.default = pkgs.hoon-language-server;
+      packages.hoon-language-server = pkgs.callPackage ./. { };
+      packages.default = self.packages.${system}.hoon-language-server;
       apps.default = {
         type = "app";
-        program = "${pkgs.hoon-language-server}/bin/hoon-language-server";
+        program = "${self.packages.${system}.hoon-language-server}/bin/hoon-language-server";
       };
     };
   };
